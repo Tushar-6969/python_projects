@@ -1,69 +1,83 @@
-import speech_recognition as sr
-import pyttsx3
-import datetime
-import requests
+
+# module to import 
+import time
+import os
+import pyttsx3  # for text to voice 
+import speech_recognition as sr # for voice to text
 import webbrowser
+import datetime
+import pyjokes
+import requests
 
-# Initialize the recognizer
-recognizer = sr.Recognizer()
-engine = pyttsx3.init()
 
-# Function to speak text
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
+def sptext():
+     recognizer=sr.Recognizer() # functiom call
+     with sr.Microphone() as source:  # listen trhough mic 
+           print("listening......")
+           recognizer.adjust_for_ambient_noise(source)  # cleaning noise 
+           audio=recognizer.listen(source)    # actual listemn 
 
-# Function to listen and recognize speech
-def listen():
-    with sr.Microphone() as source:
-        print("Listening...")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
 
-        try:
-            print("Recognizing...")
-            text = recognizer.recognize_google(audio)
-            return text.lower()
+# now we handle the case when anyone no speak 
+           try:
+                print("recognizing")
+                data=recognizer.recognize_google(audio)
+                print(data)
+                return data
+                
+           except sr.UnknownValueError:
+                print(" not understand ")     
 
-        except sr.UnknownValueError:
-            print("Sorry, could not understand audio.")
-            return ""
-        except sr.RequestError as e:
-            print(f"Error occurred: {e}")
-            return ""
-
-# Main loop for interaction
-while True:
-    speak("How can I help you?")
-    command = listen()
-
-    if "hello" in command:
-        speak("Hello there!")
-    elif "what's the time" in command:
-        now = datetime.datetime.now().strftime("%H:%M")
-        speak(f"The current time is {now}")
-    elif "what's the date" in command:
-        today = datetime.date.today().strftime("%B %d, %Y")
-        speak(f"Today is {today}")
-    elif "weather" in command:
-        city = "New York"  # Change this to the desired city
-        api_key = "YOUR_WEATHER_API_KEY"  # Replace with your actual API key
-        weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
+               
+def speech_totxt(x):
+      engine=pyttsx3.init()   # for calling fun from module 
         
-        response = requests.get(weather_url)
-        if response.status_code == 200:
-            weather_data = response.json()
-            description = weather_data['weather'][0]['description']
-            temperature = weather_data['main']['temp']
-            speak(f"The weather in {city} is {description}. The temperature is {temperature} Kelvin.")
-        else:
-            speak("Sorry, I couldn't fetch the weather information.")
-    elif "search" in command:
-        speak("What do you want to search for?")
-        search_query = listen()
-        if search_query:
-            url = f"https://www.google.com/search?q={search_query}"
-            webbrowser.open(url)
-    elif "stop" in command:
-        speak("Goodbye!")
-    break
+# get property is used to  make chnge int o speech and allow some custom change and set proprty allows to set thes change s
+      voices=engine.getProperty('voices')
+      engine.setProperty('voice',voices[0].id)    # 0 for men voice and 1 for woman voice 
+
+# for speed of speech      
+      rate=engine.getProperty('rate')
+      engine.setProperty('rate',120)
+      engine.say(x)
+      engine.runAndWait()
+
+if __name__=='__main__':
+     
+     speech_totxt("hii i am jarvis i am here to help you sir ")
+     while True:
+            
+            
+            data1=sptext()
+
+            if "your name" in data1:
+                  name=" my name is jarvis iam here to help you "
+                  speech_totxt(name)
+            elif "old are you" in data1: 
+                  age="2.5 minute"
+                  speech_totxt(age)
+            elif "time" in data1:
+                  time=datetime.datetime.now().strftime("%I%M%p")
+            #   print(time)
+                  speech_totxt(time) 
+            elif "open youtube" in data1:
+                  webbrowser.open("https://www.youtube.com/")   
+            elif "search" in data1:
+                  speech_totxt("What do you want to search for?")
+                  search_query =sptext()
+                  if search_query:
+                        url = f"https://www.google.com/search?q={search_query}"
+                        webbrowser.open(url)
+            elif "joke" in data1:
+                  joke1=pyjokes.get_joke(language="en", category="neutral")
+                  print(joke1)
+                  speech_totxt(joke1)
+
+            elif 'play song' in data1:
+                  add=r"C:\Users\Tushar\Music"
+                  listeonsong=os.listdir(add)
+                  os.startfile(os.path.join(add,listeonsong[0]))    
+            elif 'exit' in data1:
+                  speech_totxt(" thank for having me ")
+                  break     
+            time.sleep(5)
